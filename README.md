@@ -1,38 +1,26 @@
-# Portfolio · Alae-eddine Naggaz
+# Mon portfolio
 
-Mon portfolio de recherche d'alternance data (Analyst, Scientist, Engineer) : 9 projets, chacun raconté avec la méthode STAR et le chemin que suit la donnée.
+Salut, moi c'est Alae. Je suis en cycle ingénieur à l'Efrei Bordeaux (Big Data & Machine Learning) et je cherche une alternance en data à partir de septembre 2026.
 
-🌐 https://naggaz-alae.github.io/Portfolio/
+Ce dépôt, c'est le code de mon site : https://naggaz-alae.github.io/Porftolio-/
 
-## Modifier le contenu
+J'y présente 9 projets, du RAG sur des contrats d'assurance à un Takuzu en C qu'on peut jouer directement dans le navigateur. Pour chaque projet j'explique d'où je suis parti, ce que j'ai fait et ce que j'en ai retenu.
 
-Tout le texte (présentation, projets, compétences, parcours) est dans [`src/data/profile.ts`](src/data/profile.ts).
-Le design est dans [`src/styles/global.css`](src/styles/global.css).
+## Comment c'est fait
 
-Pour ajouter un projet : copie un bloc dans `projects`, change le `slug`, et mets `featured: true` si tu veux qu'il apparaisse dans « Trois projets dont je suis fier ».
+Pas de framework. J'ai écrit un petit script (`build.mjs`) qui lit mes infos dans `src/data/profile.ts` et génère des pages HTML toutes simples. Le style est dans `src/styles/global.css`.
 
-## Construire le site
-
-Aucune dépendance à installer, seulement Node 22 ou plus récent.
+Pour le lancer chez soi, il faut juste Node 22 :
 
 ```bash
-npm run build     # génère le site dans dist/
-npm run preview   # http://localhost:4321
+npm run build
+npm run preview
 ```
 
-## Organisation
+Ensuite le site est sur http://localhost:4321.
 
-```
-src/data/profile.ts      tout le contenu
-src/styles/global.css    le design (thème clair et sombre automatiques)
-build.mjs                le générateur (accueil, une page par projet, 404, sitemap)
-public/                  photo, image de partage LinkedIn, captures, favicon
-public/demos/takuzu/     le Takuzu en C compilé en WebAssembly, jouable en ligne
-```
+À chaque push sur `main`, une GitHub Action reconstruit le site et le met en ligne sur GitHub Pages.
 
-## Déploiement
+## Me contacter
 
-Chaque push sur `main` lance `.github/workflows/deploy.yml`, qui construit le site et le publie sur GitHub Pages.
-À faire une seule fois : **Settings → Pages → Source : GitHub Actions**.
-
-Le guide complet (stratégie, domaine, DNS, SEO, checklist de lancement) est dans [`GUIDE.md`](GUIDE.md).
+naggaz.alaeeddine@gmail.com, ou via mon [GitHub](https://github.com/naggaz-alae).
