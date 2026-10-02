@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://naggaz-alae.github.io/Portfolio/sitemap-index.xml

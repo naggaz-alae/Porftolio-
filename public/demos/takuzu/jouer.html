@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takuzu · jouer une partie</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{--paper:#EEF1F3;--surface:#FFFFFF;--ink:#15212B;--muted:#56646F;--line:#CBD3DA;--wine:#8A1C3B;--leaf:#2F6E57;--err:#B42318;
+    --zero:#FFFFFF;--one:#15212B;color-scheme:light dark}
+  @media (prefers-color-scheme:dark){:root{--paper:#10161B;--surface:#18212A;--ink:#E6EBEF;--muted:#9AA8B3;--line:#2C3943;--wine:#F07A9A;--leaf:#6FC7A2;--err:#F97066;--zero:#E6EBEF;--one:#0B1015}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:16px}
+  .wrap{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  p{margin:0;color:var(--muted);font-size:.92rem}
+  .grid{display:grid;gap:4px;padding:8px;background:var(--line);border-radius:10px;aspect-ratio:1}
+  .cell{border:0;border-radius:5px;background:var(--paper);cursor:pointer;position:relative;padding:0}
+  .cell.z{background:var(--zero);box-shadow:inset 0 0 0 2px var(--one)}
+  .cell.o{background:var(--one)}
+  .cell.fixed{cursor:default}
+  .cell.fixed::after{content:"";position:absolute;inset:38%;border-radius:50%;background:var(--wine)}
+  .cell.err{outline:3px solid var(--err);outline-offset:-3px}
+  .cell:focus-visible{outline:3px solid var(--wine);outline-offset:1px}
+  .bar{display:flex;flex-wrap:wrap;gap:8px}
+  button.b{font:600 .9rem system-ui,sans-serif;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+  button.b:hover{border-color:var(--ink)}
+  button.b.main{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  #msg{min-height:1.5em;font-weight:600;color:var(--ink)}
+  #msg.win{color:var(--leaf)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p>Remplissez la grille en blanc ou noir. Pas plus de deux cases identiques à la suite, et autant de blanches que de noires sur chaque ligne et chaque colonne. Cliquez sur une case pour changer sa couleur ; les cases marquées d’un point sont fixes.</p>
+  <div class="grid" id="grid" role="grid" aria-label="Grille de Takuzu"></div>
+  <div id="msg" role="status" aria-live="polite">Chargement du moteur en C…</div>
+  <div class="bar">
+    <button class="b main" id="random" type="button">Nouvelle grille</button>
+    <button class="b" id="undo" type="button">Annuler</button>
+    <button class="b" id="redo" type="button">Rétablir</button>
+    <button class="b" id="restart" type="button">Recommencer</button>
+    <button class="b" id="solve" type="button">Voir la solution</button>
+  </div>
+</div>
+<script>
+  var Module = { noInitialRun: true, onRuntimeInitialized: start, print: function(){}, printErr: function(){} };
+  var g = 0;
+  var grid = document.getElementById('grid'), msg = document.getElementById('msg');
+  var S_EMPTY = 0, S_ZERO = 1, S_ONE = 2;
+
+  function draw(){
+    var R = Module._nb_rows(g), C = Module._nb_cols(g);
+    grid.style.gridTemplateColumns = 'repeat(' + C + ',1fr)';
+    grid.innerHTML = '';
+    for (var i = 0; i < R; i++) for (var j = 0; j < C; j++) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'cell'; b.dataset.i = i; b.dataset.j = j;
+      var empty = Module._is_empty(g, i, j), fixed = Module._is_immutable(g, i, j), n = Module._get_number(g, i, j);
+      var label = empty ? 'vide' : (n === 0 ? 'blanche' : 'noire');
+      if (!empty) b.classList.add(n === 0 ? 'z' : 'o');
+      if (fixed) { b.classList.add('fixed'); b.disabled = true; label += ', fixe'; }
+      if (!empty && Module._has_error(g, i, j)) { b.classList.add('err'); label += ', erreur'; }
+      b.setAttribute('aria-label', 'Ligne ' + (i + 1) + ', colonne ' + (j + 1) + ' : ' + label);
+      grid.appendChild(b);
+    }
+    if (Module._is_over(g)) { msg.textContent = 'Grille résolue. Bravo !'; msg.className = 'win'; }
+    else { msg.textContent = ''; msg.className = ''; }
+  }
+  grid.addEventListener('click', function(e){
+    var b = e.target.closest('.cell'); if (!b || b.disabled) return;
+    var i = +b.dataset.i, j = +b.dataset.j, s = Module._get_square(g, i, j);
+    var next = s === S_EMPTY ? S_ZERO : s === S_ZERO ? S_ONE : S_EMPTY;
+    Module._play_move(g, i, j, next); draw();
+    var again = grid.querySelector('[data-i="' + i + '"][data-j="' + j + '"]'); if (again) again.focus();
+  });
+  function newGrid(){ if (g) Module._delete(g); g = Module._new_random(6, 6, 0, 0); draw(); }
+  function start(){
+    if (g) return;
+    g = Module._new_default(); draw();
+    document.getElementById('random').onclick = newGrid;
+    document.getElementById('undo').onclick = function(){ Module._undo(g); draw(); };
+    document.getElementById('redo').onclick = function(){ Module._redo(g); draw(); };
+    document.getElementById('restart').onclick = function(){ Module._restart(g); draw(); };
+    document.getElementById('solve').onclick = function(){ Module._restart(g); if (!Module._solve(g)) { msg.textContent = 'Pas de solution trouvée.'; return; } draw(); };
+  }
+</script>
+<script src="game.js"></script>
+<script>
+  // Le moteur termine parfois son initialisation par une exception sans gravité :
+  // on démarre la partie dès que le runtime est prêt, quoi qu'il arrive.
+  (function wait(){ if (Module.calledRun && typeof Module._new_default === 'function') { try { start(); } catch (e) { msg.textContent = 'Le moteur du jeu n’a pas pu démarrer.'; } } else setTimeout(wait, 50); })();
+</script>
+</body>
+</html>

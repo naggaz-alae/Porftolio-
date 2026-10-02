@@ -1,7 +1,7 @@
 # Guide : du CV au portfolio en ligne (budget 0 €)
 
 Profil ciblé : étudiant ingénieur Big Data & ML qui cherche une **alternance Data de 24 mois**.
-Stack retenue : **Astro + GitHub Pages**, 100 % gratuit.
+Stack retenue : **générateur Node sans dépendance + GitHub Pages**, 100 % gratuit.
 URL finale : `https://naggaz-alae.github.io/Portfolio/`
 
 ---
@@ -18,7 +18,7 @@ URL finale : `https://naggaz-alae.github.io/Portfolio/`
 | Section | Rôle |
 |---|---|
 | Accueil (hero) | Accroche, statut « Disponible », 2 boutons : Projets / Contact |
-| Projets | 4 cartes, chacune menant à une étude de cas au format **STAR** |
+| Projets | 3 projets phares + la liste complète des 9 projets filtrable, chacun menant à une étude de cas **STAR** |
 | Compétences | Regroupées par domaine, pas de barres de niveau (subjectives et peu crédibles) |
 | Parcours | Expérience + formation en frise |
 | À propos | Ton histoire, du DUT dev à la data, et ce que t'ont apporté tes jobs « non tech » |
@@ -66,34 +66,35 @@ Bonnes pratiques : `prenom-nom.dev` (ex. `alae-naggaz.dev`), court, sans chiffre
 | Option | Coût | Pour toi ? |
 |---|---|---|
 | Framer / Webflow | Gratuit avec sous-domaine imposé, payant pour un domaine perso | ❌ Pas crédible pour un profil tech qui a un DUT dev |
-| **Astro** | Gratuit | ✅ **Retenu** : HTML statique ultra-rapide, SEO excellent, facile à modifier |
-| Next.js | Gratuit | Seulement si tu veux des démos interactives lourdes (API ML) |
+| Astro / Next.js | Gratuit | Très bien, mais une centaine de dépendances npm à maintenir pour 10 pages |
+| **Générateur maison en Node, zéro dépendance** | Gratuit | ✅ **Retenu (v2)** : un fichier de contenu, un script de 300 lignes, rien à installer, rien qui casse dans un an |
 | CMS (WordPress…) | Hébergement payant | ❌ |
 
-Pour une démo ML interactive plus tard, garde Astro et héberge la démo à part, gratuitement, sur **Hugging Face Spaces** ou **Streamlit Community Cloud**. Il suffit ensuite de renseigner `demo:` dans le projet.
+La v1 était en Astro. La v2 utilise `build.mjs` : Node 22 lit directement `src/data/profile.ts` et écrit du HTML statique. Même résultat (HTML rapide, SEO), sans `npm install`.
+C'est aussi un argument d'entretien : « j'ai écrit le générateur de mon portfolio ».
+
+Pour une démo ML interactive, héberge-la à part, gratuitement, sur **Hugging Face Spaces** ou **Streamlit Community Cloud**, puis renseigne `demo: { label, href }` dans le projet. Le Takuzu, lui, tourne directement dans le site grâce à WebAssembly.
 
 ---
 
 ## 4. Conception & développement (déjà fait ✅)
 
-- **Maquette** : un seul fichier de contenu, `src/data/profile.ts`. Tu ne touches pas au HTML pour mettre à jour ton portfolio.
+- **Contenu** : un seul fichier, `src/data/profile.ts`. Tu ne touches pas au HTML pour mettre à jour ton portfolio.
 - **Structure du code**
   ```
-  src/data/profile.ts        ← TOUT ton contenu
-  src/layouts/Base.astro     ← <head> SEO, OpenGraph, menu, footer
-  src/pages/index.astro      ← page d'accueil
-  src/pages/projets/[slug].astro ← étude de cas STAR (1 page par projet)
+  src/data/profile.ts        ← TOUT ton contenu (9 projets, STAR, « ce que j'en retiens »)
   src/styles/global.css      ← design (thème clair/sombre automatique)
-  public/                    ← favicon, image de partage, robots.txt, (cv.pdf)
+  build.mjs                  ← <head> SEO + OpenGraph, accueil, une page par projet, 404, sitemap
+  public/                    ← photo, image de partage, captures, favicon, démo Takuzu, (cv.pdf)
   ```
-- **Responsive** : grilles fluides, testé à 390 px (mobile), 768 px (tablette) et 1280 px (desktop), sans défilement horizontal.
-- **Accessibilité** : `lang="fr"`, lien « Aller au contenu », titres hiérarchisés, focus clavier visible, contrastes AA, respect de `prefers-reduced-motion`, emojis masqués aux lecteurs d'écran.
+- **Design** : papier bleu-gris, accent bordeaux, typo Schibsted Grotesk + Instrument Serif (pour tes notes personnelles). Élément signature : le « chemin de la donnée » de chaque projet.
+- **Responsive** : testé à 390 px (mobile) et 1280 px (desktop), sans défilement horizontal.
+- **Accessibilité** : `lang="fr"`, lien « Aller au contenu », titres hiérarchisés, focus clavier visible, contrastes AA, `prefers-reduced-motion` respecté, filtres et grille Takuzu utilisables au clavier.
 
 **Travailler en local**
 ```bash
-npm install
-npm run dev      # http://localhost:4321/Portfolio/
-npm run build    # vérifie que tout compile
+npm run build     # génère dist/
+npm run preview   # http://localhost:4321
 ```
 
 ---
@@ -106,7 +107,7 @@ npm run build    # vérifie que tout compile
 3. Chaque `push` sur `main` redéploie automatiquement (workflow `.github/workflows/deploy.yml`).
 4. Ton site : `https://naggaz-alae.github.io/Portfolio/`
 
-> Astuce : si tu renommes le repo `naggaz-alae.github.io`, l'URL devient la racine `https://naggaz-alae.github.io/`. Dans ce cas, supprime `base: '/Portfolio'` dans `astro.config.mjs` et mets à jour `public/robots.txt`.
+> Astuce : si tu renommes le repo `naggaz-alae.github.io`, l'URL devient la racine `https://naggaz-alae.github.io/`. Dans ce cas, change `SITE_URL` en haut de `build.mjs`.
 
 **SSL/HTTPS** : fourni automatiquement par GitHub Pages. Rien à faire.
 
@@ -114,7 +115,7 @@ npm run build    # vérifie que tout compile
 - Chez le registrar, crée 4 enregistrements **A** sur `@` : `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
 - Et un **CNAME** `www` → `naggaz-alae.github.io`
 - Dans Settings → Pages → Custom domain, saisis le domaine puis coche **Enforce HTTPS**.
-- Dans `astro.config.mjs` : `site: 'https://alae-naggaz.dev'` et supprime `base`.
+- En haut de `build.mjs` : `SITE_URL = 'https://alae-naggaz.dev/'`.
 
 **Email pro à 0 €** : garde `naggaz.alaeeddine@gmail.com` (adresse sobre, c'est très bien). Avec un domaine sur Cloudflare, **Cloudflare Email Routing** (gratuit) redirige `contact@alae-naggaz.dev` vers ton Gmail, et Gmail peut envoyer « en tant que » cette adresse.
 
@@ -126,24 +127,26 @@ npm run build    # vérifie que tout compile
 - `<title>` + `meta description` uniques par page
 - Balises **OpenGraph** + image 1200×630 (`public/og-image.png`) pour un bel aperçu sur LinkedIn
 - Données structurées **JSON-LD `Person`** (Google comprend qui tu es)
-- `sitemap-index.xml` + `robots.txt`, URL canonique
+- `sitemap.xml` + `robots.txt`, URL canonique
 
 **Analytics respectueux des données (gratuit, sans cookies, sans bannière RGPD)**
 1. Crée un compte sur [goatcounter.com](https://www.goatcounter.com) (gratuit pour un usage non commercial).
 2. Mets ton code dans `profile.goatcounter` (ex. `'alae-naggaz'`).
 
 **Après la mise en ligne**
-- [Google Search Console](https://search.google.com/search-console) : ajoute la propriété (préfixe d'URL) et soumets `sitemap-index.xml`.
+- [Google Search Console](https://search.google.com/search-console) : ajoute la propriété (préfixe d'URL) et soumets `sitemap.xml`.
 - Teste l'aperçu LinkedIn avec le [Post Inspector](https://www.linkedin.com/post-inspector/).
 - Lance Lighthouse (Chrome DevTools) : vise ≥ 95 partout.
 
 ### ✅ Checklist avant lancement
 - [ ] URL LinkedIn renseignée (`profile.linkedin`)
-- [ ] Liens `repo:` pointant vers **chaque repo** (et non ton profil GitHub)
+- [x] Liens `repo:` pointant vers **chaque repo** (fait en v2)
+- [ ] Renommer les repos `projet1`…`projet9` avec des noms parlants (`suis-je-couvert`, `football-analysis`, `veille-ruptures`…), puis mettre à jour les liens dans `profile.ts`. GitHub redirige les anciennes URL, mais un recruteur juge aussi la liste de tes repos.
+- [ ] Ajouter une capture ou un GIF dans les README de Football Analysis et Suis-je couvert (ce sont tes projets phares, et ils n'ont pas encore d'image)
 - [ ] Chaque repo a un README clair : objectif, captures, comment lancer, résultats
 - [ ] Au moins un résultat **chiffré** par projet
 - [ ] CV **sans numéro de téléphone** dans `public/cv.pdf` + `profile.cv: '/cv.pdf'`
-- [ ] Cohérence école/ville : le CV dit « Efrei **Bordeaux** », ton README GitHub dit « Efrei **Paris** / Île-de-France ». Choisis une version et aligne CV, GitHub, LinkedIn et le site.
+- [ ] Cohérence école/ville : le site et le CV disent « Efrei **Bordeaux** ». Le README de ton profil GitHub dit encore « Efrei **Paris** » : remplace-le par `PROFILE_README.md` (dans ce repo).
 - [ ] Relecture orthographe (fais relire par quelqu'un)
 - [ ] Test sur ton téléphone + aperçu LinkedIn OK
 - [ ] Lien du portfolio ajouté : CV, LinkedIn (section « Sélection » + infos de contact), bio GitHub, signature email

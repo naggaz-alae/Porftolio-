@@ -1,16 +1,12 @@
 {
   "name": "portfolio-naggaz-alae",
   "type": "module",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "description": "Portfolio d'Alae-eddine Naggaz : site statique généré sans dépendance.",
+  "engines": { "node": ">=22" },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "check": "astro check"
-  },
-  "dependencies": {
-    "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.5"
+    "build": "node --experimental-strip-types build.mjs",
+    "preview": "python3 -m http.server 4321 --directory dist"
   }
 }
